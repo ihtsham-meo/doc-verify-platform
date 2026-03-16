@@ -3,6 +3,7 @@ import { env } from '../config/env';
 
 const allowedOrigins = [
   'http://localhost:3000',
+
 ];
 
 export const corsConfig = cors({
