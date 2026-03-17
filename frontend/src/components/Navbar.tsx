@@ -2,70 +2,132 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth }  from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function Navbar() {
   const { user, logout, isAdmin } = useAuth();
+  const { isDark, toggleTheme }   = useTheme();
   const pathname = usePathname();
 
-  const linkClass = (href: string) =>
-    `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-      pathname === href
-        ? 'bg-blue-700 text-white'
-        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-    }`;
-
-  if (!user) return null;
+  const isActive = (href: string) => pathname === href;
 
   return (
-    <nav className="bg-gray-900 border-b border-gray-700">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+    <nav style={{
+      background:   'var(--bg-card)',
+      borderBottom: '1px solid var(--border)',
+      boxShadow:    'var(--shadow)',
+      position:     'sticky',
+      top: 0,
+      zIndex: 50,
+    }}>
+      <div style={{
+        maxWidth: 1200,
+        margin:   '0 auto',
+        padding:  '0 1.5rem',
+        height:   64,
+        display:  'flex',
+        alignItems:      'center',
+        justifyContent:  'space-between',
+      }}>
 
-          {/* Logo */}
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                />
-              </svg>
-            </div>
-            <span className="text-white font-semibold text-lg">DocVerify</span>
-          </Link>
+        {/* Logo */}
+        <Link href={user ? '/dashboard' : '/login'} style={{
+          display:    'flex',
+          alignItems: 'center',
+          gap:        8,
+          textDecoration: 'none',
+        }}>
+          <div style={{
+            width: 34, height: 34,
+            background:   'var(--accent)',
+            borderRadius: 10,
+            display:      'flex',
+            alignItems:   'center',
+            justifyContent: 'center',
+          }}>
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2.2}>
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+              />
+            </svg>
+          </div>
+          <span style={{ fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>
+            DocVerify
+          </span>
+        </Link>
 
-          {/* Nav links */}
-          <div className="flex items-center gap-1">
-            <Link href="/dashboard" className={linkClass('/dashboard')}>
-              Dashboard
-            </Link>
-            <Link href="/upload" className={linkClass('/upload')}>
-              Upload
-            </Link>
-            <Link href="/verify" className={linkClass('/verify')}>
-              Verify
-            </Link>
-            {isAdmin && (
-              <Link href="/admin" className={linkClass('/admin')}>
-                Admin
+        {/* Nav links — only when logged in */}
+        {user && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            {[
+              { href: '/dashboard', label: 'Dashboard' },
+              { href: '/upload',    label: 'Upload'    },
+              { href: '/verify',    label: 'Verify'    },
+              ...(isAdmin ? [{ href: '/admin', label: 'Admin' }] : []),
+            ].map(({ href, label }) => (
+              <Link key={href} href={href} style={{
+                padding:       '6px 14px',
+                borderRadius:  8,
+                fontSize:      14,
+                fontWeight:    500,
+                textDecoration:'none',
+                color:         isActive(href) ? 'var(--accent)'       : 'var(--text-secondary)',
+                background:    isActive(href) ? 'var(--accent-light)'  : 'transparent',
+                transition:    'background 0.15s, color 0.15s',
+              }}>
+                {label}
               </Link>
-            )}
+            ))}
           </div>
+        )}
 
-          {/* User info + logout */}
-          <div className="flex items-center gap-3">
-            <div className="text-right">
-              <p className="text-white text-sm font-medium">{user.email}</p>
-              <p className="text-gray-400 text-xs capitalize">{user.role}</p>
+        {/* Right side: theme toggle + user */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+
+          {/* Dark/light toggle — matches the moon icon in the image */}
+          <button
+            onClick={toggleTheme}
+            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            style={{
+              width:        38,
+              height:       38,
+              borderRadius: 10,
+              border:       '1px solid var(--border)',
+              background:   'var(--bg-input)',
+              cursor:       'pointer',
+              display:      'flex',
+              alignItems:   'center',
+              justifyContent: 'center',
+              color:        'var(--text-secondary)',
+              fontSize:     17,
+              transition:   'background 0.15s, border-color 0.15s',
+            }}
+          >
+            {isDark ? '☀️' : '🌙'}
+          </button>
+
+          {user ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
+                  {user.email}
+                </p>
+                <p style={{ fontSize: 11, color: 'var(--accent)', margin: 0, textTransform: 'capitalize' }}>
+                  {user.role}
+                </p>
+              </div>
+              <button onClick={logout} className="btn-secondary" style={{ fontSize: 13, padding: '6px 14px' }}>
+                Logout
+              </button>
             </div>
-            <button
-              onClick={logout}
-              className="bg-gray-700 hover:bg-gray-600 text-white text-sm px-3 py-2 rounded-md transition-colors"
-            >
-              Logout
-            </button>
-          </div>
-
+          ) : (
+            <Link href="/login" className="btn-primary" style={{
+              fontSize: 14, padding: '8px 20px', textDecoration: 'none',
+            }}>
+              Sign in
+            </Link>
+          )}
         </div>
       </div>
     </nav>

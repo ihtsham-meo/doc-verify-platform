@@ -9,25 +9,22 @@ import { formatFileSize, formatDate } from '@/lib/hashFile';
 import axios from 'axios';
 
 interface Doc {
-  id:         string;
-  fileName:   string;
-  fileHash:   string;
-  fileSize:   number;
-  mimeType:   string;
-  uploadedAt: string;
+  id: string; fileName: string; fileHash: string;
+  fileSize: number; mimeType: string; uploadedAt: string;
 }
 
-const mimeIcon: Record<string, string> = {
-  'application/pdf': '📄',
-  'image/png':       '🖼',
-  'image/jpeg':      '🖼',
+const mimeLabel: Record<string, string> = {
+  'application/pdf': 'PDF', 'image/png': 'PNG', 'image/jpeg': 'JPG',
+};
+const mimeColor: Record<string, string> = {
+  'application/pdf': '#ef4444', 'image/png': '#3b82f6', 'image/jpeg': '#f59e0b',
 };
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [docs,    setDocs]    = useState<Doc[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState('');
+  const [docs,     setDocs]     = useState<Doc[]>([]);
+  const [loading,  setLoading]  = useState(true);
+  const [error,    setError]    = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
 
   const fetchDocs = useCallback(async () => {
@@ -35,12 +32,8 @@ export default function DashboardPage() {
       const { data } = await api.get('/documents');
       setDocs(data.documents);
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.error || 'Could not load documents.');
-      }
-    } finally {
-      setLoading(false);
-    }
+      if (axios.isAxiosError(err)) setError(err.response?.data?.error || 'Could not load documents.');
+    } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { fetchDocs(); }, [fetchDocs]);
@@ -52,108 +45,108 @@ export default function DashboardPage() {
       await api.delete(`/documents/${id}`);
       setDocs((prev) => prev.filter((d) => d.id !== id));
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.error || 'Delete failed.');
-      }
-    } finally {
-      setDeleting(null);
-    }
+      if (axios.isAxiosError(err)) setError(err.response?.data?.error || 'Delete failed.');
+    } finally { setDeleting(null); }
   };
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div style={{ maxWidth: 960, margin: '0 auto' }}>
 
-      {/* Page header */}
-      <div className="flex items-center justify-between mb-8">
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
         <div>
-          <h1 className="text-2xl font-bold text-white">My Documents</h1>
-          <p className="text-gray-400 text-sm mt-1">
-            Welcome back, <span className="text-white">{user?.email}</span>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px' }}>
+            My Documents
+          </h1>
+          <p style={{ fontSize: 14, color: 'var(--text-muted)', margin: 0 }}>
+            Welcome back, <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{user?.email}</span>
           </p>
         </div>
-        <Link
-          href="/upload"
-          className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors flex items-center gap-2"
-        >
-          <span className="text-lg leading-none">+</span> Upload document
+        <Link href="/upload" className="btn-primary" style={{
+          textDecoration: 'none', fontSize: 14, padding: '10px 20px',
+          display: 'flex', alignItems: 'center', gap: 6,
+        }}>
+          <span style={{ fontSize: 18, lineHeight: 1 }}>+</span> Upload document
         </Link>
       </div>
 
-      {error && (
-        <div className="mb-6">
-          <Alert variant="error" message={error} onClose={() => setError('')} />
-        </div>
-      )}
+      {error && <div style={{ marginBottom: 24 }}><Alert variant="error" message={error} onClose={() => setError('')} /></div>}
 
-      {/* Stats row */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      {/* Stats */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 32 }}>
         {[
           { label: 'Total documents', value: docs.length },
           { label: 'Total size',      value: formatFileSize(docs.reduce((s, d) => s + d.fileSize, 0)) },
           { label: 'Last upload',     value: docs[0] ? formatDate(docs[0].uploadedAt) : '—' },
         ].map((s) => (
-          <div key={s.label} className="bg-gray-900 border border-gray-700 rounded-xl p-4">
-            <p className="text-gray-400 text-xs">{s.label}</p>
-            <p className="text-white font-semibold mt-1">{s.value}</p>
+          <div key={s.label} className="stat-card">
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '0 0 4px' }}>{s.label}</p>
+            <p style={{ fontSize: 20, fontWeight: 700, color: 'var(--accent)', margin: 0 }}>{s.value}</p>
           </div>
         ))}
       </div>
 
-      {/* Documents table */}
-      <div className="bg-gray-900 border border-gray-700 rounded-2xl overflow-hidden">
+      {/* Table */}
+      <div className="card" style={{ overflow: 'hidden' }}>
         {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <div style={{ display: 'flex', justifyContent: 'center', padding: 64 }}>
+            <div style={{ width: 32, height: 32, border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
           </div>
         ) : docs.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-4xl mb-3">📂</p>
-            <p className="text-gray-300 font-medium">No documents yet</p>
-            <p className="text-gray-500 text-sm mt-1">Upload your first document to get started.</p>
-            <Link href="/upload"
-              className="inline-block mt-4 text-blue-400 hover:text-blue-300 text-sm underline">
+          <div style={{ textAlign: 'center', padding: '64px 24px' }}>
+            <p style={{ fontSize: 40, margin: '0 0 12px' }}>📂</p>
+            <p style={{ fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px' }}>No documents yet</p>
+            <p style={{ fontSize: 14, color: 'var(--text-muted)', margin: '0 0 16px' }}>Upload your first document to get started.</p>
+            <Link href="/upload" style={{ color: 'var(--accent)', fontSize: 14, textDecoration: 'underline' }}>
               Upload now →
             </Link>
           </div>
         ) : (
-          <table className="w-full">
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr className="border-b border-gray-700 bg-gray-800/50">
+              <tr className="table-header">
                 {['Document', 'Hash (SHA256)', 'Size', 'Uploaded', 'Actions'].map((h) => (
-                  <th key={h} className="text-left text-xs font-medium text-gray-400 uppercase tracking-wider px-5 py-3">
+                  <th key={h} style={{ textAlign: 'left', padding: '12px 20px', fontWeight: 600,
+                    fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em',
+                    color: 'var(--text-muted)', background: 'var(--bg-input)',
+                    borderBottom: '1px solid var(--border)' }}>
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800">
+            <tbody>
               {docs.map((doc) => (
-                <tr key={doc.id} className="hover:bg-gray-800/40 transition-colors">
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">{mimeIcon[doc.mimeType] ?? '📄'}</span>
-                      <span className="text-white text-sm font-medium truncate max-w-[160px]">
+                <tr key={doc.id} className="table-row">
+                  <td style={{ padding: '14px 20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{
+                        width: 32, height: 32, borderRadius: 8, display: 'flex',
+                        alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700,
+                        background: mimeColor[doc.mimeType] + '20',
+                        color: mimeColor[doc.mimeType] ?? 'var(--text-muted)',
+                      }}>
+                        {mimeLabel[doc.mimeType] ?? 'FILE'}
+                      </div>
+                      <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)',
+                        maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {doc.fileName}
                       </span>
                     </div>
                   </td>
-                  <td className="px-5 py-4">
-                    <code className="text-xs text-green-400 font-mono bg-green-900/20 px-2 py-1 rounded">
-                      {doc.fileHash.slice(0, 16)}…
-                    </code>
+                  <td style={{ padding: '14px 20px' }}>
+                    <span className="hash-badge">{doc.fileHash.slice(0, 16)}…</span>
                   </td>
-                  <td className="px-5 py-4 text-gray-300 text-sm">
+                  <td style={{ padding: '14px 20px', fontSize: 14, color: 'var(--text-secondary)' }}>
                     {formatFileSize(doc.fileSize)}
                   </td>
-                  <td className="px-5 py-4 text-gray-300 text-sm whitespace-nowrap">
+                  <td style={{ padding: '14px 20px', fontSize: 13, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                     {formatDate(doc.uploadedAt)}
                   </td>
-                  <td className="px-5 py-4">
-                    <button
-                      onClick={() => handleDelete(doc.id)}
-                      disabled={deleting === doc.id}
-                      className="text-red-400 hover:text-red-300 disabled:opacity-50 text-xs font-medium transition-colors"
-                    >
+                  <td style={{ padding: '14px 20px' }}>
+                    <button onClick={() => handleDelete(doc.id)} disabled={deleting === doc.id}
+                      style={{ fontSize: 13, fontWeight: 500, color: 'var(--red)',
+                        background: 'none', border: 'none', cursor: 'pointer', opacity: deleting === doc.id ? 0.5 : 1 }}>
                       {deleting === doc.id ? 'Deleting…' : 'Delete'}
                     </button>
                   </td>
@@ -163,6 +156,7 @@ export default function DashboardPage() {
           </table>
         )}
       </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

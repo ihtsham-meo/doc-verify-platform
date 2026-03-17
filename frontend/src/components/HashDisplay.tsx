@@ -2,11 +2,7 @@
 
 import { useState } from 'react';
 
-interface Props {
-  hash:     string;
-  label?:   string;
-  loading?: boolean;
-}
+interface Props { hash: string; label?: string; loading?: boolean; }
 
 export default function HashDisplay({ hash, label = 'SHA256 Hash', loading = false }: Props) {
   const [copied, setCopied] = useState(false);
@@ -18,37 +14,39 @@ export default function HashDisplay({ hash, label = 'SHA256 Hash', loading = fal
   };
 
   return (
-    <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+    <div style={{
+      background: 'var(--bg-input)', border: '1px solid var(--border)',
+      borderRadius: 10, padding: 16,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           {label}
         </span>
         {!loading && hash && (
-          <button
-            onClick={copy}
-            className="text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
-          >
-            {copied ? (
-              <><span className="text-green-400">✓</span> Copied!</>
-            ) : (
-              <><span>⎘</span> Copy</>
-            )}
+          <button onClick={copy} style={{
+            fontSize: 12, color: copied ? 'var(--accent)' : 'var(--text-muted)',
+            background: 'none', border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 4, fontWeight: 500,
+          }}>
+            {copied ? '✓ Copied!' : '⎘ Copy'}
           </button>
         )}
       </div>
 
       {loading ? (
-        <div className="flex items-center gap-2 py-1">
-          <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          <span className="text-gray-400 text-sm">Computing hash…</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 14, height: 14, border: '2px solid var(--border)', borderTopColor: 'var(--accent)',
+            borderRadius: '50%', animation: 'spin 0.7s linear infinite', flexShrink: 0 }} />
+          <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Computing hash…</span>
         </div>
       ) : hash ? (
-        <code className="text-green-400 font-mono text-xs break-all leading-relaxed">
+        <code style={{ fontSize: 12, color: 'var(--accent)', fontFamily: 'monospace', wordBreak: 'break-all', lineHeight: 1.6 }}>
           {hash}
         </code>
       ) : (
-        <p className="text-gray-600 text-sm italic">No file selected</p>
+        <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>No file selected</p>
       )}
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

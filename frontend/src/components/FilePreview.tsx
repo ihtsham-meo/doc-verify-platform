@@ -2,53 +2,47 @@
 
 import { formatFileSize } from '@/lib/hashFile';
 
-interface Props {
-  file:     File;
-  onClear:  () => void;
-  disabled?: boolean;
-}
+interface Props { file: File; onClear: () => void; disabled?: boolean; }
 
 const mimeLabel: Record<string, string> = {
-  'application/pdf': 'PDF',
-  'image/png':       'PNG',
-  'image/jpeg':      'JPEG',
+  'application/pdf': 'PDF', 'image/png': 'PNG', 'image/jpeg': 'JPG',
 };
-
-const mimeColor: Record<string, string> = {
-  'application/pdf': 'text-red-400 bg-red-900/30',
-  'image/png':       'text-blue-400 bg-blue-900/30',
-  'image/jpeg':      'text-yellow-400 bg-yellow-900/30',
+const mimeColor: Record<string, { bg: string; color: string }> = {
+  'application/pdf': { bg: '#fee2e2', color: '#dc2626' },
+  'image/png':       { bg: '#dbeafe', color: '#2563eb' },
+  'image/jpeg':      { bg: '#fef3c7', color: '#d97706' },
 };
 
 export default function FilePreview({ file, onClear, disabled }: Props) {
+  const colors = mimeColor[file.type] ?? { bg: 'var(--border)', color: 'var(--text-muted)' };
   return (
-    <div className="flex items-center gap-4 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3">
-
-      {/* File type badge */}
-      <div className={`
-        shrink-0 w-10 h-10 rounded-lg flex items-center justify-center
-        text-xs font-bold ${mimeColor[file.type] ?? 'text-gray-400 bg-gray-700'}
-      `}>
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 14,
+      background: 'var(--bg-input)', border: '1px solid var(--border)',
+      borderRadius: 10, padding: '12px 16px',
+    }}>
+      <div style={{
+        flexShrink: 0, width: 40, height: 40, borderRadius: 8,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 11, fontWeight: 700, background: colors.bg, color: colors.color,
+      }}>
         {mimeLabel[file.type] ?? 'FILE'}
       </div>
-
-      {/* File info */}
-      <div className="flex-1 min-w-0">
-        <p className="text-white text-sm font-medium truncate">{file.name}</p>
-        <p className="text-gray-400 text-xs mt-0.5">
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', margin: '0 0 2px',
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {file.name}
+        </p>
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>
           {formatFileSize(file.size)} · {file.type}
         </p>
       </div>
-
-      {/* Clear button */}
       {!disabled && (
-        <button
-          onClick={onClear}
-          className="shrink-0 text-gray-500 hover:text-red-400 transition-colors text-lg leading-none"
-          title="Remove file"
-        >
-          ✕
-        </button>
+        <button onClick={onClear} style={{
+          flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer',
+          fontSize: 18, color: 'var(--text-muted)', lineHeight: 1,
+          transition: 'color 0.15s',
+        }} title="Remove file">✕</button>
       )}
     </div>
   );
